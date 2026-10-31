@@ -1,0 +1,23 @@
+# Terraform working directory (providers, modules)
+.terraform/
+
+# Terraform state (may contain sensitive data)
+*.tfstate
+*.tfstate.*
+.terraform.tfstate.lock.info
+
+# Terraform plans and their JSON output
+tfplan
+*.tfplan
+tfplan.json
+
+# Crash logs
+crash.log
+crash.*.log
+
+# Variable files (may contain secrets)
+*.tfvars
+*.tfvars.json
+
+# macOS system files
+.DS_Store
