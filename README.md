@@ -1,5 +1,7 @@
 # Cloud Security Guardrails & Drift Detection
 
+[![Policy checks](https://github.com/Eng-Ben/cloud-security-guardrails/actions/workflows/policy-checks.yml/badge.svg)](https://github.com/Eng-Ben/cloud-security-guardrails/actions/workflows/policy-checks.yml)
+
 A hands-on cloud security project that provisions AWS infrastructure as code
 and automatically blocks insecure configurations before they are deployed.
 
@@ -72,7 +74,8 @@ The policy catches the misconfiguration before it is applied.
 - [x] Policy: S3 public access block
 - [x] Policy: S3 encryption
 - [x] Policy: S3 versioning
+- [x] Unit tests for all policies
+- [x] GitHub Actions pipeline
 - [ ] Policies for IAM and network rules
 - [ ] Drift detection
-- [ ] GitHub Actions pipeline
 - [ ] Architecture diagram
