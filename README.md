@@ -32,41 +32,70 @@ The S3 bucket is configured with:
 
 ## Project structure
 
-```
 cloud-security-guardrails/
+├── .github/workflows/
+│ └── policy-checks.yml # CI pipeline
 ├── terraform/
-│   └── main.tf                # Infrastructure definition
+│ └── main.tf # Infrastructure definition
 ├── policy/
-│   ├── s3.rego                # Public access must be blocked
-│   ├── s3_encryption.rego     # Encryption must use an approved algorithm
-│   └── s3_versioning.rego     # Versioning must be enabled
+│ ├── s3.rego # Public access must be blocked
+│ ├── s3_encryption.rego # Encryption must use an approved algorithm
+│ ├── s3_versioning.rego # Versioning must be enabled
+│ └── s3_test.rego # Unit tests for the policies
+├── scripts/
+│ └── detect_drift.sh # Drift detection
 └── README.md
-```
 
 ## How to run
 
-```bash
+bash
 cd terraform
 
 # Create a plan and convert it to JSON
+
 terraform plan -out=tfplan
 terraform show -json tfplan > tfplan.json
 
 # Check the plan against the policies
+
 conftest test tfplan.json --policy ../policy
-```
 
 ## Example: catching an insecure change
 
 Changing `block_public_acls` from `true` to `false` produces:
 
-```
 FAIL - tfplan.json - main - aws_s3_bucket_public_access_block.security_lab: block_public_acls must be set to true
 
 1 test, 0 passed, 0 warnings, 1 failure, 0 exceptions
-```
 
 The policy catches the misconfiguration before it is applied.
+
+## Drift detection
+
+Conftest only checks the **code**. If someone changes a resource directly in
+AWS (for example in the console), the code still looks secure. This is called
+**drift**.
+
+`scripts/detect_drift.sh` compares the real AWS infrastructure with the
+Terraform configuration using `terraform plan -detailed-exitcode`:
+
+| Exit code | Meaning        |
+| --------- | -------------- |
+| `0`       | No drift       |
+| `1`       | Error          |
+| `2`       | Drift detected |
+
+Example: versioning was suspended manually outside Terraform:
+
+⚠️ DRIFT DETECTED. AWS does not match the Terraform configuration:
+
+# aws_s3_bucket_versioning.security_lab will be updated in-place
+
+          ~ status     = "Suspended" -> "Enabled"
+
+Plan: 0 to add, 1 to change, 0 to destroy.
+
+Running `terraform apply` restores the secure configuration.
 
 ## Roadmap
 
@@ -76,6 +105,6 @@ The policy catches the misconfiguration before it is applied.
 - [x] Policy: S3 versioning
 - [x] Unit tests for all policies
 - [x] GitHub Actions pipeline
+- [x] Drift detection
 - [ ] Policies for IAM and network rules
-- [ ] Drift detection
 - [ ] Architecture diagram

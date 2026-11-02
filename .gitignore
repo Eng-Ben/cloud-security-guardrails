@@ -21,3 +21,6 @@ crash.*.log
 
 # macOS system files
 .DS_Store
+
+# Drift detection report
+drift-report.txt
