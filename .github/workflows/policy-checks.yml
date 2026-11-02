@@ -1,0 +1,51 @@
+# -----------------------------------------------------------------------------
+# Policy checks
+#
+# Runs on every push and pull request. Checks Terraform formatting and
+# syntax, and runs the unit tests for the OPA/Rego security policies.
+# No AWS credentials are needed.
+# -----------------------------------------------------------------------------
+
+name: Policy checks
+
+on:
+  push:
+  pull_request:
+
+# Least privilege: the workflow only needs to read the repository
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Check Terraform formatting
+        run: terraform fmt -check -recursive
+        working-directory: terraform
+
+      - name: Initialize Terraform (no backend)
+        run: terraform init -backend=false
+        working-directory: terraform
+
+      - name: Validate Terraform
+        run: terraform validate
+        working-directory: terraform
+
+      - name: Install Conftest
+        env:
+          CONFTEST_VERSION: "0.71.1"
+        run: |
+          curl -sSL "https://github.com/open-policy-agent/conftest/releases/download/v${CONFTEST_VERSION}/conftest_${CONFTEST_VERSION}_Linux_x86_64.tar.gz" | tar xz
+          sudo mv conftest /usr/local/bin/
+          conftest --version
+
+      - name: Run policy unit tests
+        run: conftest verify --policy policy
