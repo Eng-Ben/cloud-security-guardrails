@@ -33,9 +33,11 @@ The S3 bucket is configured with:
 ```
 cloud-security-guardrails/
 ├── terraform/
-│   └── main.tf      # Infrastructure definition
+│   └── main.tf                # Infrastructure definition
 ├── policy/
-│   └── s3.rego      # Security policies
+│   ├── s3.rego                # Public access must be blocked
+│   ├── s3_encryption.rego     # Encryption must use an approved algorithm
+│   └── s3_versioning.rego     # Versioning must be enabled
 └── README.md
 ```
 
@@ -67,8 +69,10 @@ The policy catches the misconfiguration before it is applied.
 ## Roadmap
 
 - [x] S3 bucket with explicit security controls
-- [x] First policy: S3 public access block
-- [ ] Policies for encryption, IAM and network rules
+- [x] Policy: S3 public access block
+- [x] Policy: S3 encryption
+- [x] Policy: S3 versioning
+- [ ] Policies for IAM and network rules
 - [ ] Drift detection
 - [ ] GitHub Actions pipeline
 - [ ] Architecture diagram
