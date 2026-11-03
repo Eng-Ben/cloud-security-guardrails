@@ -15,33 +15,40 @@ and automatically blocks insecure configurations before they are deployed.
 ## Architecture
 
 ```mermaid
-flowchart LR
-    dev[Developer] -->|writes| tf[Terraform code<br/>main.tf]
-    dev -->|writes| rego[Rego policies<br/>policy/]
+flowchart TB
+    dev[Developer]
+
+    subgraph Repo["Repository"]
+        tf[Terraform code<br/>main.tf]
+        rego[Rego policies<br/>policy/]
+    end
 
     subgraph CI["GitHub Actions - on every push"]
         fmt[terraform fmt + validate]
         verify[conftest verify<br/>23 unit tests]
     end
 
-    tf --> fmt
-    rego --> verify
-
     subgraph Deploy["Before deploy"]
-        plan[terraform plan] --> json[tfplan.json]
-        json --> check{conftest test}
+        plan[terraform plan] --> json[tfplan.json] --> check{conftest test}
     end
 
+    dev --> tf
+    dev --> rego
+    tf --> fmt
+    rego --> verify
     tf --> plan
     rego --> check
     check -->|pass| apply[terraform apply]
     check -->|fail| block[Change blocked]
-
     apply --> aws[(AWS S3 bucket<br/>eu-north-1)]
 
-    manual[Manual change<br/>in AWS console] -.->|drift| aws
-    drift[detect_drift.sh] -->|compares| aws
-    drift -->|compares| tf
+    subgraph Drift["After deploy"]
+        manual[Manual change<br/>in AWS console]
+        drift[detect_drift.sh]
+    end
+
+    manual -.->|drift| aws
+    drift -->|compares with code| aws
 ```
 
 ## Tech stack
