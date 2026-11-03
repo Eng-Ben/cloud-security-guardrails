@@ -12,6 +12,38 @@ and automatically blocks insecure configurations before they are deployed.
 3. If a change would weaken security, the policy check **fails** and the change
    can be stopped before it reaches AWS.
 
+## Architecture
+
+```mermaid
+flowchart LR
+    dev[Developer] -->|writes| tf[Terraform code<br/>main.tf]
+    dev -->|writes| rego[Rego policies<br/>policy/]
+
+    subgraph CI["GitHub Actions - on every push"]
+        fmt[terraform fmt + validate]
+        verify[conftest verify<br/>23 unit tests]
+    end
+
+    tf --> fmt
+    rego --> verify
+
+    subgraph Deploy["Before deploy"]
+        plan[terraform plan] --> json[tfplan.json]
+        json --> check{conftest test}
+    end
+
+    tf --> plan
+    rego --> check
+    check -->|pass| apply[terraform apply]
+    check -->|fail| block[Change blocked]
+
+    apply --> aws[(AWS S3 bucket<br/>eu-north-1)]
+
+    manual[Manual change<br/>in AWS console] -.->|drift| aws
+    drift[detect_drift.sh] -->|compares| aws
+    drift -->|compares| tf
+```
+
 ## Tech stack
 
 | Tool           | Purpose                |
@@ -129,4 +161,4 @@ Running `terraform apply` restores the secure configuration.
 - [x] Drift detection
 - [x] Policy: IAM least privilege
 - [x] Policy: network rules
-- [ ] Architecture diagram
+- [x] Architecture diagram
