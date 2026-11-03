@@ -39,6 +39,9 @@ The S3 bucket is configured with:
 | `s3_versioning.rego` | S3 versioning is enabled                                         | deny   |
 | `iam.rego`           | IAM policies do not allow all actions (`*`)                      | deny   |
 | `iam.rego`           | IAM policies do not allow all actions in a service (e.g. `s3:*`) | warn   |
+| `network.rego`       | SSH (22) and RDP (3389) are not open to the internet             | deny   |
+| `network.rego`       | Security groups do not allow all traffic from the internet       | deny   |
+| `network.rego`       | Other non-web ports open to the internet                         | warn   |
 
 All policies are covered by unit tests (`*_test.rego`), run with `conftest verify --policy policy`.
 
@@ -53,6 +56,8 @@ cloud-security-guardrails/
 ├── policy/
 │   ├── iam.rego               # IAM must follow least privilege
 │   ├── iam_test.rego          # Unit tests for the IAM policy
+│   ├── network.rego           # Admin ports must not be open to the internet
+│   ├── network_test.rego      # Unit tests for the network policy
 │   ├── s3.rego                # Public access must be blocked
 │   ├── s3_encryption.rego     # Encryption must use an approved algorithm
 │   ├── s3_versioning.rego     # Versioning must be enabled
@@ -123,5 +128,5 @@ Running `terraform apply` restores the secure configuration.
 - [x] GitHub Actions pipeline
 - [x] Drift detection
 - [x] Policy: IAM least privilege
-- [ ] Policy: network rules
+- [x] Policy: network rules
 - [ ] Architecture diagram
