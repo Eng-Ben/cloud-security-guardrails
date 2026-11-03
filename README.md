@@ -30,21 +30,37 @@ The S3 bucket is configured with:
 - **Versioning**: enabled, to recover deleted or overwritten data
 - **Ownership controls**: ACLs disabled (`BucketOwnerEnforced`)
 
+## Policies
+
+| Policy               | Checks                                                           | Result |
+| -------------------- | ---------------------------------------------------------------- | ------ |
+| `s3.rego`            | All four S3 public access block settings are enabled             | deny   |
+| `s3_encryption.rego` | S3 encryption uses an approved algorithm                         | deny   |
+| `s3_versioning.rego` | S3 versioning is enabled                                         | deny   |
+| `iam.rego`           | IAM policies do not allow all actions (`*`)                      | deny   |
+| `iam.rego`           | IAM policies do not allow all actions in a service (e.g. `s3:*`) | warn   |
+
+All policies are covered by unit tests (`*_test.rego`), run with `conftest verify --policy policy`.
+
 ## Project structure
 
+```
 cloud-security-guardrails/
 ├── .github/workflows/
-│ └── policy-checks.yml # CI pipeline
+│   └── policy-checks.yml      # CI pipeline
 ├── terraform/
-│ └── main.tf # Infrastructure definition
+│   └── main.tf                # Infrastructure definition
 ├── policy/
-│ ├── s3.rego # Public access must be blocked
-│ ├── s3_encryption.rego # Encryption must use an approved algorithm
-│ ├── s3_versioning.rego # Versioning must be enabled
-│ └── s3_test.rego # Unit tests for the policies
+│   ├── iam.rego               # IAM must follow least privilege
+│   ├── iam_test.rego          # Unit tests for the IAM policy
+│   ├── s3.rego                # Public access must be blocked
+│   ├── s3_encryption.rego     # Encryption must use an approved algorithm
+│   ├── s3_versioning.rego     # Versioning must be enabled
+│   └── s3_test.rego           # Unit tests for the S3 policies
 ├── scripts/
-│ └── detect_drift.sh # Drift detection
+│   └── detect_drift.sh        # Drift detection
 └── README.md
+```
 
 ## How to run
 
@@ -106,5 +122,6 @@ Running `terraform apply` restores the secure configuration.
 - [x] Unit tests for all policies
 - [x] GitHub Actions pipeline
 - [x] Drift detection
-- [ ] Policies for IAM and network rules
+- [x] Policy: IAM least privilege
+- [ ] Policy: network rules
 - [ ] Architecture diagram
